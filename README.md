@@ -1,6 +1,6 @@
 # transfer-function-editor
 
-A tool for editing transfer functions in vue-js + ts.
+A tool for editing transfer functions in vue-js + ts using d3. 
 
 ## Recommended IDE Setup
 
