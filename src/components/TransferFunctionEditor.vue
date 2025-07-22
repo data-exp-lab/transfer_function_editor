@@ -316,10 +316,7 @@ export default {
 
                       // redraw the graph
                       updatePlot()
-                    }
-                                        
-                    // convert those dx, dy to scaled values
-                    // new_x = old_x + dx' , etc., update that point in the plot
+                    }                    
                 }      
             }
         }
