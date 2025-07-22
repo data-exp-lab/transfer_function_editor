@@ -13,6 +13,9 @@
                 height:500px">        
       <svg ref="mySVG"></svg>
     </div>
+    <div>
+      <button @click="exportTF()">export TF</button>
+    </div>
   </template>
 
 
@@ -20,12 +23,15 @@
 
 import { onMounted, ref, type Ref, type TemplateRef, useTemplateRef} from 'vue'
 import * as d3 from 'd3';
+import type { Path } from 'typescript';
+
 
 interface svg_context_types {
   'xScale': d3.ScaleLinear<number, number, never>,
   'yScale': d3.ScaleLinear<number, number, never>,
   'width': number, 
-  'height': number
+  'height': number, 
+  'path': SVGPathElement | null,
 }
 
 export default {
@@ -54,6 +60,30 @@ export default {
                     { x: 10, y: 0, id:5 },
                     ];
 
+        function exportTF(){
+          console.log("try to interpolate") 
+          if (svg_context.value){                   
+            const path = svg_context.value.path 
+            const xScale = svg_context.value?.xScale
+            const yScale = svg_context.value?.yScale
+            
+            if (path && xScale && yScale){
+              console.log('svg path total length:', path.getTotalLength())
+              const n_path = 100
+              const d_path = path.getTotalLength() / n_path
+              const x_pts = [] 
+              const y_pts = []
+              for (let ipt = 0; ipt < n_path; ipt++){
+                const p = path.getPointAtLength(ipt * d_path)
+                x_pts.push(xScale.invert(p.x))
+                y_pts.push(yScale.invert(p.y))
+              }
+              // save this somewhere
+              console.log('interpolated x, y', x_pts, y_pts)
+            }
+          }          
+        }
+
         function buildPlot(){
             const svgCval = svgContainer.value;
             if (svgCval){
@@ -80,17 +110,17 @@ export default {
               const line = d3.line<{ x: number; y: number }>()
               .x(d => xScale(d.x))
               .y(d => yScale(d.y))
-              .curve(d3.curveBumpX);
+              .curve(d3.curveBumpX);              
 
               // Draw the line
-              svg.append('path')
+              const path = svg.append('path')
               .datum(data)
               .attr('fill', 'none')
               .attr('stroke', 'steelblue')
               .attr('stroke-width', 1.5)
               .attr('d', line);
-
-              console.log('svg path appended')
+                            
+              console.log('svg path appended:', path.node()?.getTotalLength())
 
               function pointColoring(ptid: number): string{                
                 if (ptid == selectedPointID.value){
@@ -109,7 +139,7 @@ export default {
                   .attr("cx", d => xScale(d.x))
                   .attr("cy", d => yScale(d.y))
                   .attr("r", 3)
-              svg_context.value = {xScale, yScale , width, height}
+              svg_context.value = {xScale, yScale , width, height, 'path': path.node()}
             }
             
         }
@@ -296,7 +326,7 @@ export default {
 
 
         
-        return {mySVG, svgContainer, mouseDown, mouseUp}
+        return {mySVG, svgContainer, mouseDown, mouseUp, exportTF}
     }
 
 }
